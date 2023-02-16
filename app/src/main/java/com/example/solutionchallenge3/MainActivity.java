@@ -1,6 +1,8 @@
 package com.example.solutionchallenge3;
 
 
+import static androidx.core.content.ContextCompat.checkSelfPermission;
+
 import android.Manifest;
 import android.app.Fragment;
 import android.content.Intent;
@@ -42,18 +44,52 @@ import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
-String psoas="psl";
     private NavigationView navigationView;
     public DrawerLayout drawerLayout;
     public ActionBarDrawerToggle actionBarDrawerToggle;
     LinearLayout fragmentlinear;
-
+    private static final int BACK_PRESS_DELAY = 2000; // Delay time in milliseconds
+    private long lastBackPressTime = 0;
     Button asl,psl;
-
+    private static final int CAMERA_PERMISSION_REQUEST_CODE = 100;
+    private static final int STORAGE_PERMISSION_REQUEST_CODE = 200;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        // Check if camera and storage permissions are granted
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED||
+        ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+
+            // Request camera and storage permissions
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.RECORD_AUDIO},
+                    CAMERA_PERMISSION_REQUEST_CODE);
+        } else {
+            // Permissions are already granted, continue with app startup
+            startApp();
+        }
+    }
+    // Handle permission request results
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == CAMERA_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED &&
+                    grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                // Camera and storage permissions are granted, continue with app startup
+                startApp();
+            } else {
+                // Camera and storage permissions are not granted, show an error message or exit the app
+                Toast.makeText(this, "Camera and storage permissions are required to use this app", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+        }
+    }
+    private void startApp() {
+        // TODO: Implement app startup code here
+
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragmentlinear, new PSL())
                 .commit();
@@ -61,7 +97,7 @@ String psoas="psl";
         // drawer and back button to close drawer
         drawerLayout = findViewById(R.id.my_drawer_layout);
         actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout,R.string.app_name , R.string.app_name);
-fragmentlinear=findViewById(R.id.fragmentlinear);
+        fragmentlinear=findViewById(R.id.fragmentlinear);
         navigationView = findViewById(R.id.navview);
         // pass the Open and Close toggle for the drawer layout listener
         // to toggle the button
@@ -91,8 +127,8 @@ fragmentlinear=findViewById(R.id.fragmentlinear);
             @Override
             public void onClick(View view) {
                 getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragmentlinear, new ASL())
-                    .commit();
+                        .replace(R.id.fragmentlinear, new ASL())
+                        .commit();
                 asl.setBackground(new ColorDrawable(Color.YELLOW));
                 psl.setBackground(new ColorDrawable(Color.TRANSPARENT));
                 psl.setTextColor(Color.WHITE);
@@ -113,14 +149,14 @@ fragmentlinear=findViewById(R.id.fragmentlinear);
                     asl.setBackground(new ColorDrawable(Color.YELLOW));
                     psl.setBackground(new ColorDrawable(Color.TRANSPARENT));
                     psl.setTextColor(Color.WHITE);
-//                    l2.setVisibility(View.INVISIBLE);
-
                 } else if (id == R.id.nav_about) {
                     getSupportFragmentManager().beginTransaction()
                             .replace(R.id.fragmentlinear, new About())
                             .commit();
-
-//                    l2.setVisibility(View.INVISIBLE);
+                    psl.setTextColor(Color.WHITE);
+                    asl.setTextColor(Color.WHITE);
+                    psl.setBackground(new ColorDrawable(Color.TRANSPARENT));
+                    asl.setBackground(new ColorDrawable(Color.TRANSPARENT));
 
                 } else if (id == R.id.nav_psl) {
                     getSupportFragmentManager().beginTransaction()
@@ -137,13 +173,18 @@ fragmentlinear=findViewById(R.id.fragmentlinear);
             }
         });
     }
-
     @Override
     public void onBackPressed() {
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START);
         } else {
-            super.onBackPressed();
+            long currentTime = System.currentTimeMillis();
+            if (currentTime - lastBackPressTime < BACK_PRESS_DELAY) {
+                super.onBackPressed();
+            } else {
+                Toast.makeText(this, "Press back again to exit", Toast.LENGTH_SHORT).show();
+                lastBackPressTime = currentTime;
+            }
         }
     }
 

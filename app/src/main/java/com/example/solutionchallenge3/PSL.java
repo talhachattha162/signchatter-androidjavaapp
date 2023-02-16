@@ -1,5 +1,7 @@
 package com.example.solutionchallenge3;
 
+import static androidx.core.content.ContextCompat.checkSelfPermission;
+
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -9,6 +11,7 @@ import android.hardware.Camera;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.os.Bundle;
+import androidx.core.app.ActivityCompat;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
@@ -18,6 +21,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import android.os.CountDownTimer;
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.SurfaceHolder;
@@ -116,17 +120,15 @@ public class PSL extends Fragment  implements SurfaceHolder.Callback{
         return parent;
     }
 
+
     @Override
     public void surfaceCreated(@NonNull SurfaceHolder surfaceHolder) {
         try {
-            if (ContextCompat.checkSelfPermission(getContext(), android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
-            {  //ask for authorisation{
-                ActivityCompat.requestPermissions(getActivity(), new String[]{android.Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION);
-        } else {
+
                 mCamera = Camera.open();
                 mCamera.setPreviewDisplay(surfaceHolder);
                 mCamera.setDisplayOrientation(90);
-            }
+
 
         } catch (IOException e) {
             Log.e(TAG, "Error setting camera preview", e);
@@ -162,24 +164,6 @@ public class PSL extends Fragment  implements SurfaceHolder.Callback{
         }
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-//        Log.d("help","help");
-        if (requestCode == REQUEST_CAMERA_PERMISSION) {
-            Intent intent = new Intent(getContext(), MainActivity.class);
-            startActivity(intent);
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Camera permission granted, start camera preview
-                mPreview.getHolder().addCallback(this);
-            } else {
-                // Camera permission not granted, show message and exit activity
-//                finish();
-                Toast.makeText(getContext(), "Permission not granted",Toast.LENGTH_SHORT);
-            }
-        }
-    }
     private void startRecording() {
         if (mCamera == null) {
 
@@ -225,6 +209,7 @@ public class PSL extends Fragment  implements SurfaceHolder.Callback{
         }
     }
 
+
     private void startTimer() {
         mCountDownTimer = new CountDownTimer(6000, 1000) {
             @Override
@@ -258,23 +243,4 @@ public class PSL extends Fragment  implements SurfaceHolder.Callback{
     }
 
 
-    @Override
-    public void onResume() {
-        super.onResume();
-
-        if (ContextCompat.checkSelfPermission(getContext(), android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(getActivity(), new String[]{android.Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION);
-        }
-        if (ContextCompat.checkSelfPermission(getContext(), android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(getActivity(), new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_WRITE_EXTERNAL_STORAGE);
-
-        }
-        if ( ContextCompat.checkSelfPermission(getContext(), android.Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(getActivity(), new String[]{android.Manifest.permission.RECORD_AUDIO}, REQUEST_RECORD_AUDIO);
-
-        }
-    }
 }

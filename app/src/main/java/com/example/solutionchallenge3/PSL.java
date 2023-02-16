@@ -1,6 +1,7 @@
 package com.example.solutionchallenge3;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -13,6 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import android.os.CountDownTimer;
@@ -26,6 +28,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.Console;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -45,7 +48,7 @@ public class PSL extends Fragment  implements SurfaceHolder.Callback{
     private static final int REQUEST_WRITE_EXTERNAL_STORAGE = 456;
 
 
-    private Camera mCamera;
+    static Camera mCamera=null;
     private SurfaceView mPreview;
     private MediaRecorder mMediaRecorder;
     private boolean mIsRecording = false;
@@ -116,9 +119,15 @@ public class PSL extends Fragment  implements SurfaceHolder.Callback{
     @Override
     public void surfaceCreated(@NonNull SurfaceHolder surfaceHolder) {
         try {
-            mCamera = Camera.open();
-            mCamera.setPreviewDisplay(surfaceHolder);
-            mCamera.setDisplayOrientation(90);
+            if (ContextCompat.checkSelfPermission(getContext(), android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
+            {  //ask for authorisation{
+                ActivityCompat.requestPermissions(getActivity(), new String[]{android.Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION);
+        } else {
+                mCamera = Camera.open();
+                mCamera.setPreviewDisplay(surfaceHolder);
+                mCamera.setDisplayOrientation(90);
+            }
+
         } catch (IOException e) {
             Log.e(TAG, "Error setting camera preview", e);
             mCamera.release();
@@ -156,7 +165,11 @@ public class PSL extends Fragment  implements SurfaceHolder.Callback{
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+//        Log.d("help","help");
         if (requestCode == REQUEST_CAMERA_PERMISSION) {
+            Intent intent = new Intent(getContext(), MainActivity.class);
+            startActivity(intent);
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // Camera permission granted, start camera preview
                 mPreview.getHolder().addCallback(this);
@@ -169,6 +182,7 @@ public class PSL extends Fragment  implements SurfaceHolder.Callback{
     }
     private void startRecording() {
         if (mCamera == null) {
+
             return;
         }
 
@@ -243,17 +257,23 @@ public class PSL extends Fragment  implements SurfaceHolder.Callback{
         return mOutputFile.getAbsolutePath();
     }
 
+
     @Override
     public void onResume() {
         super.onResume();
 
         if (ContextCompat.checkSelfPermission(getContext(), android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED
-        && ContextCompat.checkSelfPermission(getContext(), android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
-                && ContextCompat.checkSelfPermission(getContext(), android.Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED
         ) {
-            ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION);
-            ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_WRITE_EXTERNAL_STORAGE);
-            ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.RECORD_AUDIO}, REQUEST_RECORD_AUDIO);
+            ActivityCompat.requestPermissions(getActivity(), new String[]{android.Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION);
+        }
+        if (ContextCompat.checkSelfPermission(getContext(), android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(getActivity(), new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_WRITE_EXTERNAL_STORAGE);
+
+        }
+        if ( ContextCompat.checkSelfPermission(getContext(), android.Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(getActivity(), new String[]{android.Manifest.permission.RECORD_AUDIO}, REQUEST_RECORD_AUDIO);
 
         }
     }

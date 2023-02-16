@@ -109,6 +109,7 @@ fragmentlinear=findViewById(R.id.fragmentlinear);
                     getSupportFragmentManager().beginTransaction()
                             .replace(R.id.fragmentlinear, new ASL())
                             .commit();
+
                     asl.setBackground(new ColorDrawable(Color.YELLOW));
                     psl.setBackground(new ColorDrawable(Color.TRANSPARENT));
                     psl.setTextColor(Color.WHITE);

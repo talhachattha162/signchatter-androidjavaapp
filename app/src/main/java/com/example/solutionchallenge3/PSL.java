@@ -41,6 +41,9 @@ import android.os.Bundle;
 public class PSL extends Fragment  implements SurfaceHolder.Callback{
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int REQUEST_CAMERA_PERMISSION = 100;
+    private static final int REQUEST_RECORD_AUDIO = 123;
+    private static final int REQUEST_WRITE_EXTERNAL_STORAGE = 456;
+
 
     private Camera mCamera;
     private SurfaceView mPreview;
@@ -244,8 +247,14 @@ public class PSL extends Fragment  implements SurfaceHolder.Callback{
     public void onResume() {
         super.onResume();
 
-        if (ContextCompat.checkSelfPermission(getContext(), android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(getContext(), android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED
+        && ContextCompat.checkSelfPermission(getContext(), android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+                && ContextCompat.checkSelfPermission(getContext(), android.Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED
+        ) {
             ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION);
+            ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_WRITE_EXTERNAL_STORAGE);
+            ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.RECORD_AUDIO}, REQUEST_RECORD_AUDIO);
+
         }
     }
 }
